@@ -170,6 +170,21 @@ type PDH_FMT_COUNTERVALUE_ITEM_LONG struct {
 	FmtValue PDH_FMT_COUNTERVALUE_LONG
 }
 
+// used by PDH_RAW_COUNTER
+type FILETIME struct {
+	DwLowDateTime  uint32
+	DwHighDateTime uint32
+}
+
+// used by PdhGetRawCounterValue()
+type PDH_RAW_COUNTER struct {
+	CStatus     uint32
+	TimeStamp   FILETIME
+	FirstValue  int64
+	SecondValue int64
+	MultiCount  uint32
+}
+
 var (
 	// Library
 	libpdhDll *syscall.DLL
@@ -186,6 +201,7 @@ var (
 	pdh_EnumObjectItemsW          *syscall.Proc
 	pdh_MakeCounterPathW          *syscall.Proc
 	pdh_RemoveCounter             *syscall.Proc
+	pdh_GetRawCounterValue        *syscall.Proc
 )
 
 func init() {
@@ -204,6 +220,7 @@ func init() {
 	pdh_EnumObjectItemsW = libpdhDll.MustFindProc("PdhEnumObjectItemsW")
 	pdh_MakeCounterPathW = libpdhDll.MustFindProc("PdhMakeCounterPathW")
 	pdh_RemoveCounter = libpdhDll.MustFindProc("PdhRemoveCounter")
+	pdh_GetRawCounterValue = libpdhDll.MustFindProc("PdhGetRawCounterValue")
 }
 
 // Adds the specified counter to the query. This is the internationalized version. Preferably, use the
@@ -504,4 +521,16 @@ func PdhEnumObjectItems(
 	)
 
 	return uint32(ret)
+}
+
+// 获取指标的原始数据
+func PdhGetRawCounterValue(hcounter PDH_HCOUNTER, lpdwType *uint32, pValue *PDH_RAW_COUNTER) uint32 {
+	ret, _, _ := pdh_GetRawCounterValue.Call(
+		uintptr(hcounter),
+		uintptr(unsafe.Pointer(lpdwType)),
+		uintptr(unsafe.Pointer(pValue)),
+	)
+
+	return uint32(ret)
+
 }

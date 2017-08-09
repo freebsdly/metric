@@ -20,6 +20,7 @@ type Metric struct {
 	counter  string
 	handle   win.PDH_HCOUNTER
 	value    win.PDH_FMT_COUNTERVALUE_DOUBLE
+	rawvalue win.PDH_RAW_COUNTER
 }
 
 // 生成指标对象的全路径
@@ -57,6 +58,25 @@ func (p *Metric) GetValue() (value float64, err error) {
 		return
 	}
 	return p.value.DoubleValue, err
+}
+
+// 获取指标的原始数据
+// 采样一次就行
+func (p *Metric) GetRawValue() (value int64, err error) {
+	var (
+		status uint32
+		dwType uint32 = 0
+	)
+
+	status = win.PdhGetRawCounterValue(p.handle, &dwType, &p.rawvalue)
+	if status != win.ERROR_SUCCESS {
+		err = fmt.Errorf("get raw counter data failed. ErrorCode: %0#8X", status)
+		return
+	}
+	if p.rawvalue.CStatus != 0 {
+		err = fmt.Errorf("get raw counter data failed. Cstatus: %d", p.rawvalue.CStatus)
+	}
+	return p.rawvalue.FirstValue, err
 }
 
 // 从查询器中移除指标

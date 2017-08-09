@@ -5,6 +5,7 @@ type Metricer interface {
 	FullPath() string
 	CheckVaild() error
 	GetValue() (v float64, err error)
+	GetRawValue() (v int64, err error)
 	Remove() error
 }
 
@@ -21,6 +22,11 @@ func CheckVaild(m Metricer) error {
 // 获取指标的值
 func GetValue(m Metricer) (v float64, err error) {
 	return m.GetValue()
+}
+
+//
+func GetRawValue(m Metricer) (v int64, err error) {
+	return m.GetRawValue()
 }
 
 func NewMetric(obj, inst, counter string) *Metric {
@@ -62,22 +68,4 @@ func NewMetricers(obj string, insts, couts []string) []Metricer {
 		}
 	}
 	return m
-}
-
-// 创建多个指标并返回map
-func NewMetricersMap(obj string, insts, couts []string) map[string]map[string]Metricer {
-	var mm map[string]map[string]Metricer = make(map[string]map[string]Metricer)
-
-	if len(insts) == 0 {
-		insts = append(insts, " ")
-	}
-	for _, instance := range insts {
-		vm := make(map[string]Metricer)
-		for _, counter := range couts {
-			metricer := NewMetricer(obj, instance, counter)
-			vm[counter] = metricer
-		}
-		mm[instance] = vm
-	}
-	return mm
 }

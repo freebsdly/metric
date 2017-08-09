@@ -37,6 +37,11 @@ func (p *Metric) GetValue() (value float64, err error) {
 	return
 }
 
+//
+func (p *Metric) GetRawValue() (value int64, err error) {
+	return
+}
+
 // 从查询器中移除指标
 func (p *Metric) Remove() error {
 	return nil
